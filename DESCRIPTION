@@ -1,0 +1,25 @@
+Package: Stubentiger
+Type: Package
+Title: What the Package Does (Title Case)
+Version: 0.1.0
+Authors@R: c(
+    person(
+      "Leonie", "Lorenz",
+      email = "llorenz@ebi.ac.uk",
+      role = c("aut", "cre")
+    )
+  )
+Description: Stubentiger (STUdying Balancing Evolution (Nfds) To Investigate GEnome Replacement)
+    This is a package to simulate and fit a population genetic model with parameters for
+    vaccination effectiveness, negative frequency-dependent selection (NFDS) and immigration.
+License: Apache-2.0 license
+Encoding: UTF-8
+LazyData: true
+LinkingTo:
+  cpp11 (>= 0.5.2),
+  dust (>= 0.15.3) 
+Imports: 
+  dust (>= 0.15.3),
+  odin.dust (>= 0.3.13),
+  mcstate (>= 0.9.22)
+RoxygenNote: 7.3.2
