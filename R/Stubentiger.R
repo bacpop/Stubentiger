@@ -74,13 +74,13 @@ likelihood <- function(state, observed, pars = NULL) {
 #' @param steps_mcmc1 number of mcmc steps for first run
 #' @param steps_mcmc2 number of mcmc steps for second run (should be a lot higher for a good fit ~10,000 but then needs to be run on an hpc and will take ~24 hours)
 #'
-#' @importFrom mcstate particle_filter_data pmcmc_parameters pmcmc pmcmc_thin particle_deterministic
+#' @import mcstate
 #' @importFrom odin.dust odin_dust
 #' @return fitted mcmc object
 #' @export
 #'
 fit_model_to_data <- function(data, fixed_parameters, steps_mcmc1 = 10, steps_mcmc2 = 50){
-
+# #' @importFrom mcstate particle_filter_data pmcmc_parameters pmcmc pmcmc_thin particle_deterministic pmcmc_control
   # convert input data to mcstate object
   fitting_data <- data.frame("year" = 1:ncol(data), t(data))
   names(fitting_data) <- c("year", as.character(1:(fixed_parameters$GPSC_no)))
@@ -256,5 +256,5 @@ fit_example_to_sim_data <- function(sim_parameters = list("v" = 0.081, "sigma_f"
                          vaccTypes = vaccTypes_test,
                          vacc_time = vacc_time)
 
-  fit_model_to_data(data = sim_data, fixed_parameters = example_params, steps_mcmc1 = steps_mcmc1, steps_mcmc2 = steps_mcmc2)
+  Stubentiger::fit_model_to_data(data = sim_data, fixed_parameters = example_params, steps_mcmc1 = steps_mcmc1, steps_mcmc2 = steps_mcmc2)
 }
