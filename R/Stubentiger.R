@@ -265,7 +265,7 @@ simulate_example <- function(sim_parameters = list("v" = 0.081, "sigma_f" = log(
   data("SeroVT", package = "Stubentiger", envir = environment()) # information on which types are affected by vaccine (1 = serotype affected by vaccine, 0 = serotypes not affected)
   dt_test <- 1/12 # determines how many generations there are between two data points (here: 12 generations per year)
 
-  example_params <- list(dt = dt_test, GPSC_no = no_GPSC, sero_no = no_sero, gene_no = gene_no_test, Pop_start = PPsero_startpop, Pop_eq = rowSums(PPsero_startpop), capacity = sum(PPsero_startpop), Genotypes = Genotypes_matrix, delta = (gene_delta_ranking), Pop_mig_dist = PPsero_mig, vaccTypes = SeroVT, vacc_time = 4, v = sim_parameters$v, sigma_f = sim_parameters$sigma_f, prop_f = sim_parameters$prop_f, m = sim_parameters$m)
+  example_params <- list(dt = dt_test, GPSC_no = no_GPSC, sero_no = no_sero, gene_no = gene_no_test, Pop_start = PPsero_startpop, Pop_eq = rowSums(PPsero_startpop), capacity = sum(PPsero_startpop), Genotypes = Genotypes_matrix, delta = (gene_delta_ranking), Pop_mig_dist = PPsero_mig, vaccTypes = SeroVT, vacc_time = vacc_time, v = sim_parameters$v, sigma_f = sim_parameters$sigma_f, prop_f = sim_parameters$prop_f, m = sim_parameters$m)
 
   simulate_model(model_parameters = example_params, simulation_steps = time_steps)
 }
