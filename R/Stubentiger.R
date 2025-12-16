@@ -1,5 +1,62 @@
 #' Title
 #'
+#' gene_delta_ranking - a dataframe used in package examples.
+#'
+#' @docType data
+#' @format A data frame with delta statistic
+#' @name gene_delta_ranking
+NULL
+#' Title
+#'
+#' Genotypes_matrix - a dataframe used in package examples.
+#'
+#' @docType data
+#' @format A data frame with Genotypes_matrix
+#' @name Genotypes_matrix
+NULL
+#' Title
+#'
+#' joint_GPSC_counts - a dataframe used in package examples.
+#'
+#' @docType data
+#' @format A data frame with joint_GPSC_counts
+#' @name joint_GPSC_counts
+NULL
+#' Title
+#'
+#' PPsero_mig - a dataframe used in package examples.
+#'
+#' @docType data
+#' @format A data frame with PPsero_mig
+#' @name PPsero_mig
+NULL
+#' Title
+#'
+#' PPsero_startpop - a dataframe used in package examples.
+#'
+#' @docType data
+#' @format A data frame with PPsero_startpop
+#' @name PPsero_startpop
+NULL
+#' Title
+#'
+#' SeroVT - a dataframe used in package examples.
+#'
+#' @docType data
+#' @format A data frame with SeroVT
+#' @name SeroVT
+NULL
+#' Title
+#'
+#' simulated_data_over_time_filtered - a dataframe used in package examples.
+#'
+#' @docType data
+#' @format A data frame with simulated_data_over_time_filtered
+#' @name simulated_data_over_time_filtered
+NULL
+
+#' Title
+#'
 #' @param model_parameters list of model parameters
 #' @param simulation_steps number of steps to run the simulation for (in model time) (if dt = 1/12, this should be 12 * years to run simulation for)
 #'
@@ -74,13 +131,14 @@ likelihood <- function(state, observed, pars = NULL) {
 #' @param steps_mcmc1 number of mcmc steps for first run
 #' @param steps_mcmc2 number of mcmc steps for second run (should be a lot higher for a good fit ~10,000 but then needs to be run on an hpc and will take ~24 hours)
 #'
-#' @importFrom mcstate particle_filter_data pmcmc_parameters pmcmc pmcmc_thin particle_deterministic
+#' @import mcstate
+#' @import coda
 #' @importFrom odin.dust odin_dust
 #' @return fitted mcmc object
 #' @export
 #'
 fit_model_to_data <- function(data, fixed_parameters, steps_mcmc1 = 10, steps_mcmc2 = 50){
-
+# #' @importFrom mcstate particle_filter_data pmcmc_parameters pmcmc pmcmc_thin particle_deterministic pmcmc_control
   # convert input data to mcstate object
   fitting_data <- data.frame("year" = 1:ncol(data), t(data))
   names(fitting_data) <- c("year", as.character(1:(fixed_parameters$GPSC_no)))
@@ -188,23 +246,26 @@ fit_model_to_data <- function(data, fixed_parameters, steps_mcmc1 = 10, steps_mc
 simulate_example <- function(sim_parameters = list("v" = 0.081, "sigma_f" = log(0.035), "prop_f" = 0.30, "m" = log(0.013)), time_steps = 36){
   # Set parameters for model
   vacc_time <- 4 # time of vaccination, in years after start of dataset
-  PPsero_startpop <- readRDS("data/PPsero_startpop.rds") # start population for model (GPSC x serotypes)
+  data("PPsero_startpop", package = "Stubentiger", envir = environment()) # start population for model (GPSC x serotypes)
+  #print(head(PPsero_startpop))
   no_GPSC <- nrow(PPsero_startpop) # number of GPSCs
   #freq_sero
   no_sero <- ncol(PPsero_startpop) # number of serotypes
-  Genotypes_matrix <- readRDS("data/Genotypes_matrix.rds")
-  delta_test <- readRDS("data/gene_delta_ranking.rds") # delta statistic (computed as in Corander et al.)
+  data("Genotypes_matrix", package = "Stubentiger", envir = environment())
+  #Genotypes_matrix <- sapply(Genotypes_matrix,as.double)
+  data("gene_delta_ranking", package = "Stubentiger", envir = environment()) # delta statistic (computed as in Corander et al.)
+  #print(head(gene_delta_ranking))
   # calculates the changes in gene frequencies of the first time point (which are assumed to be at equilibrium) to the last time point
   # Genes that change the least in frequency have a low delta statistic value, genes that change more have a higher value.
   # then apply rank() function to determine order of genes
   # (NFDS model will determine a cut-off for genes to be under NFDS or not based on this order)
-  gene_no_test <- length(delta_test) # number of intermediate-frequency genes
-  migMatr_test_mtx <- readRDS("data/PPsero_mig.rds") # immigration matrix (rows are GPSCs, columns are serotypes)
+  gene_no_test <- length(gene_delta_ranking) # number of intermediate-frequency genes
+  data("PPsero_mig", package = "Stubentiger", envir = environment()) # immigration matrix (rows are GPSCs, columns are serotypes)
   # compute immigration matrix by assigning all GPSC-serotype combinations that appear at least once in the data set equal probabilities of immigration (i.e. one over the number of GPSC-serotype combinations)
-  vaccTypes_test <- readRDS(file = "data/SeroVT.rds") # information on which types are affected by vaccine (1 = serotype affected by vaccine, 0 = serotypes not affected)
+  data("SeroVT", package = "Stubentiger", envir = environment()) # information on which types are affected by vaccine (1 = serotype affected by vaccine, 0 = serotypes not affected)
   dt_test <- 1/12 # determines how many generations there are between two data points (here: 12 generations per year)
 
-  example_params <- list(dt = dt_test, GPSC_no = no_GPSC, sero_no = no_sero, gene_no = gene_no_test, Pop_start = PPsero_startpop, Pop_eq = rowSums(PPsero_startpop), capacity = sum(PPsero_startpop), Genotypes = Genotypes_matrix, delta = (delta_test), Pop_mig_dist = migMatr_test_mtx, vaccTypes = vaccTypes_test, vacc_time = 4, v = sim_parameters$v, sigma_f = sim_parameters$sigma_f, prop_f = sim_parameters$prop_f, m = sim_parameters$m)
+  example_params <- list(dt = dt_test, GPSC_no = no_GPSC, sero_no = no_sero, gene_no = gene_no_test, Pop_start = PPsero_startpop, Pop_eq = rowSums(PPsero_startpop), capacity = sum(PPsero_startpop), Genotypes = Genotypes_matrix, delta = (gene_delta_ranking), Pop_mig_dist = PPsero_mig, vaccTypes = SeroVT, vacc_time = 4, v = sim_parameters$v, sigma_f = sim_parameters$sigma_f, prop_f = sim_parameters$prop_f, m = sim_parameters$m)
 
   simulate_model(model_parameters = example_params, simulation_steps = time_steps)
 }
@@ -227,20 +288,23 @@ fit_example_to_sim_data <- function(sim_parameters = list("v" = 0.081, "sigma_f"
 
   # Set parameters for model
   vacc_time <- 4 # time of vaccination, in years after start of dataset
-  PPsero_startpop <- data.frame(readRDS("data/PPsero_startpop.rds")) # start population for model (GPSC x serotypes)
+  data("PPsero_startpop", package = "Stubentiger", envir = environment()) # start population for model (GPSC x serotypes)
+  PPsero_startpop <- data.frame(PPsero_startpop)
   no_GPSC <- nrow(PPsero_startpop) # number of GPSCs
   #freq_sero
   no_sero <- ncol(PPsero_startpop) # number of serotypes
-  Genotypes_matrix <- as.data.frame(readRDS("data/Genotypes_matrix.rds"))
-  delta_test <- readRDS("data/gene_delta_ranking.rds") # delta statistic (computed as in Corander et al.)
+  data("Genotypes_matrix", package = "Stubentiger", envir = environment())
+  Genotypes_matrix <- as.data.frame(Genotypes_matrix)
+  data("gene_delta_ranking", package = "Stubentiger", envir = environment()) # delta statistic (computed as in Corander et al.)
   # calculates the changes in gene frequencies of the first time point (which are assumed to be at equilibrium) to the last time point
   # Genes that change the least in frequency have a low delta statistic value, genes that change more have a higher value.
   # then apply rank() function to determine order of genes
   # (NFDS model will determine a cut-off for genes to be under NFDS or not based on this order)
-  gene_no_test <- length(delta_test) # number of intermediate-frequency genes
-  migMatr_test_mtx <- data.frame(readRDS("data/PPsero_mig.rds")) # immigration matrix (rows are GPSCs, columns are serotypes)
+  gene_no_test <- length(gene_delta_ranking) # number of intermediate-frequency genes
+  data("PPsero_mig", package = "Stubentiger", envir = environment()) # immigration matrix (rows are GPSCs, columns are serotypes)
+  PPsero_mig <- data.frame(PPsero_mig)
   # compute immigration matrix by assigning all GPSC-serotype combinations that appear at least once in the data set equal probabilities of immigration (i.e. one over the number of GPSC-serotype combinations)
-  vaccTypes_test <- readRDS(file = "data/SeroVT.rds") # information on which types are affected by vaccine (1 = serotype affected by vaccine, 0 = serotypes not affected)
+  data("SeroVT", package = "Stubentiger", envir = environment()) # information on which types are affected by vaccine (1 = serotype affected by vaccine, 0 = serotypes not affected)
   dt_test <- 1/12 # determines how many generations there are between two data points (here: 12 generations per year)
 
   example_params <- list(dt = dt_test,
@@ -251,10 +315,10 @@ fit_example_to_sim_data <- function(sim_parameters = list("v" = 0.081, "sigma_f"
                          Pop_eq = rowSums(PPsero_startpop),
                          capacity = sum(PPsero_startpop),
                          Genotypes = Genotypes_matrix,
-                         delta = delta_test,
-                         Pop_mig_dist = migMatr_test_mtx,
-                         vaccTypes = vaccTypes_test,
+                         delta = gene_delta_ranking,
+                         Pop_mig_dist = PPsero_mig,
+                         vaccTypes = SeroVT,
                          vacc_time = vacc_time)
 
-  fit_model_to_data(data = sim_data, fixed_parameters = example_params, steps_mcmc1 = steps_mcmc1, steps_mcmc2 = steps_mcmc2)
+  Stubentiger::fit_model_to_data(data = sim_data, fixed_parameters = example_params, steps_mcmc1 = steps_mcmc1, steps_mcmc2 = steps_mcmc2)
 }
