@@ -1,3 +1,5 @@
+<img src="https://github.com/bacpop/Stubentiger/tree/add_logo/STUBENTIGER_logo.png" alt="" width="200"/>
+
 # Stubentiger 
 (STUdying Balancing Evolution (Nfds) To Investigate GEnome Replacement)
 
