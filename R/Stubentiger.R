@@ -60,12 +60,11 @@ NULL
 #' @param model_parameters list of model parameters
 #' @param simulation_steps number of steps to run the simulation for (in model time) (if dt = 1/12, this should be 12 * years to run simulation for)
 #'
-#' @importFrom odin.dust odin_dust
 #' @return simulated data over time as data frame
 #' @export
 #'
 simulate_model <- function(model_parameters, simulation_steps){
-  WF_PPxSero <- odin.dust::odin_dust("model.R") # imports model
+  WF_PPxSero <- model # imports precompiled model
 
   WFmodel_ppxSero <- WF_PPxSero$new(pars = model_parameters,
                                     time = 0,
@@ -83,7 +82,7 @@ simulate_model <- function(model_parameters, simulation_steps){
     simSum_all <- rowSums(WFmodel_ppxSero$run(i)[-(1:(model_parameters$GPSC_no+1)),])
     simSum_matrix <- matrix(simSum_all, ncol = model_parameters$sero_no, nrow = model_parameters$GPSC_no, byrow = FALSE)
     simulated_sum_data_long[[i+1]] <- simSum_matrix
-    list_of_particle_list[[i+1]] <-  WFmodel_ppxSero$run(i)[(2:(model_parameters$GPSC_no+1)),]
+    list_of_particle_list[[i+1]] <- WFmodel_ppxSero$run(i)[(2:(model_parameters$GPSC_no+1)),]
   }
   simulated_data_over_time_clust <- sapply(simulated_data_long, rowSums)
   simulated_data_over_time_clust_df <- as.data.frame(simulated_data_over_time_clust)
@@ -132,13 +131,10 @@ likelihood <- function(state, observed, pars = NULL) {
 #' @param steps_mcmc2 number of mcmc steps for second run (should be a lot higher for a good fit ~10,000 but then needs to be run on an hpc and will take ~24 hours)
 #'
 #' @import mcstate
-#' @import coda
-#' @importFrom odin.dust odin_dust
 #' @return fitted mcmc object
 #' @export
 #'
 fit_model_to_data <- function(data, fixed_parameters, steps_mcmc1 = 10, steps_mcmc2 = 50){
-# #' @importFrom mcstate particle_filter_data pmcmc_parameters pmcmc pmcmc_thin particle_deterministic pmcmc_control
   # convert input data to mcstate object
   fitting_data <- data.frame("year" = 1:ncol(data), t(data))
   names(fitting_data) <- c("year", as.character(1:(fixed_parameters$GPSC_no)))
@@ -147,7 +143,7 @@ fit_model_to_data <- function(data, fixed_parameters, steps_mcmc1 = 10, steps_mc
                                                        rate = 1 / fixed_parameters$dt,
                                                        initial_time = 0)
 
-  WF <- odin.dust::odin_dust("model.R")
+  WF <- model # imports precompiled model
   det_filter <- mcstate::particle_deterministic$new(data = fitting_data,
                                            model = WF,
                                            compare = likelihood)
@@ -238,8 +234,6 @@ fit_model_to_data <- function(data, fixed_parameters, steps_mcmc1 = 10, steps_mc
 #' @param sim_parameters list of parameter values for v, sigma_f, prop_f, m
 #' @param time_steps number of time steps (in months) to run the model for
 #'
-#' @importFrom mcstate particle_filter_data pmcmc_parameters pmcmc pmcmc_thin
-#' @importFrom odin.dust odin_dust
 #' @return fitted mcmc object
 #' @export
 #'
@@ -277,8 +271,6 @@ simulate_example <- function(sim_parameters = list("v" = 0.081, "sigma_f" = log(
 #' @param steps_mcmc2 number of mcmc steps for second run (should be a lot higher for a good fit ~10,000 but then needs to be run on an hpc and will take ~24 hours)
 #' @param time_steps_for_sim number of time steps (in months) for simulating data
 #'
-#' @importFrom mcstate particle_filter_data pmcmc_parameters pmcmc pmcmc_thin
-#' @importFrom odin.dust odin_dust
 #' @return fitted mcmc object
 #' @export
 #'
