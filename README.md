@@ -1,6 +1,6 @@
 <img src="https://github.com/bacpop/Stubentiger/blob/add_logo/STUBENTIGER_logo.png" alt="" width="200"/>
 
-# Stubentiger 
+# Stubentiger
 (STUdying Balancing Evolution (Nfds) To Investigate GEnome Replacement)
 
 This is an R package to simulate and fit a population genetic model with parameters for vaccination effectiveness, negative frequency-dependent selection (NFDS) and immigration.
@@ -12,6 +12,9 @@ install.packages("devtools")
 library(devtools)
 
 # install odin, odin.dust, dust, and mcstate
+install.packages(
+  "odin.dust", "dust", "mcstate",
+  repos = c("https://mrc-ide.r-universe.dev", "https://cloud.r-project.org"))
 
 # install Stubentiger from our github repository
 install_github("bacpop/Stubentiger")
