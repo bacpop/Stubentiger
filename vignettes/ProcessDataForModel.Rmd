@@ -22,11 +22,11 @@ library(Stubentiger)
 ## Data analysis to be performed before using NFDS model
 
 1. Assemble genomes if necessary (e.g, using shovill 1.1.0 using default parameters [@seemannTseemannShovill2024])
-2. Compute Global pneumococcal sequence clusters (GPSCs) using PopPUNK 2.6.0 [@lees_fast_2019] with the PopPUNK database for S. pneumoniae GPS_v4 via poppunk_assign, applying quality control (`--run-qc`), allowing maximally one distance of zero (`--max-zero-dist 1`), and merging a maximum of three clusters based on one single isolate (`--max-merge 3`).
+2. Compute Global pneumococcal sequence clusters (GPSCs) using PopPUNK 2.6.0 [@lees_fast_2019] with the PopPUNK database for S. pneumoniae GPS_v4 via `poppunk_assign`, applying quality control (`--run-qc`), allowing maximally one distance of zero (`--max-zero-dist 1`), and merging a maximum of three clusters based on one single isolate (`--max-merge 3`)
 3. Construct a pangenome:
-    1. ggCaller 1.3.4 [@horsfieldAccurateFastGraphbased2023a] can be used for gene calling using the SPARC dataset for annotation [@croucher_population_2015], [@croucher_data_2016] and with the options `--gene-finding-only --annotation sensitive`.
-    2. bakta [@schwengers_bakta_2021] with default parameters can be used for functional annotation (if wanted)
-    3. panaroo v1.5.2 [@tonkin-hill_producing_2020] can be run with the options `--refind-mode off --clean-mode moderate --family_threshold 0.7 --min_trailing_support 2 --trailing_recursive 0 --min_edge_support_sv 2 --edge_support_threshold 0.0 --aligner none`
+    a. ggCaller 1.3.4 [@horsfieldAccurateFastGraphbased2023a] can be used for gene calling using the SPARC dataset for annotation [@croucher_population_2015], [@croucher_data_2016] and with the options `--gene-finding-only --annotation sensitive`
+    b. Bakta [@schwengers_bakta_2021] with default parameters can be used for functional annotation (if wanted)
+    c. Panaroo v1.5.2 [@tonkin-hill_producing_2020] can be run with the options `--refind-mode off --clean-mode moderate --family_threshold 0.7 --min_trailing_support 2 --trailing_recursive 0 --min_edge_support_sv 2 --edge_support_threshold 0.0 --aligner none`
 
 ## Read in data
 
