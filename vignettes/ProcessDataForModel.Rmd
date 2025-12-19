@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 library(Stubentiger)
 ```
 
-### Data anlysis to be performed before using NFDS model
+## Data analysis to be performed before using NFDS model
 
 1. Assemble genomes if necessary (e.g, using shovill 1.1.0 using default parameters [@seemannTseemannShovill2024])
 2. Compute Global pneumococcal sequence clusters (GPSCs) using PopPUNK 2.6.0 [@lees_fast_2019] with the PopPUNK database for S. pneumoniae GPS_v4 via poppunk_assign, applying quality control (`--run-qc`), allowing maximally one distance of zero (`--max-zero-dist 1`), and merging a maximum of three clusters based on one single isolate (`--max-merge 3`).
@@ -28,39 +28,49 @@ library(Stubentiger)
     2. bakta [@schwengers_bakta_2021] with default parameters can be used for functional annotation (if wanted)
     3. panaroo v1.5.2 [@tonkin-hill_producing_2020] can be run with the options `--refind-mode off --clean-mode moderate --family_threshold 0.7 --min_trailing_support 2 --trailing_recursive 0 --min_edge_support_sv 2 --edge_support_threshold 0.0 --aligner none`
 
+## Read in data
 
-### Read in data
-# Meta data file should include Lane_id, collection year, serotype, vaccine type, and GPSC
-# will likely want to read in as follows
-# MetaDataWithGPSC <- read.csv("MetaDataWithGPSC.csv")
-# below, we read in with data() as the example data is part of the package
+The metadata file should include Lane_id, collection year, serotype, vaccine type, and GPSC. You will likely want to read in as follows:
+
+```{r, eval=FALSE}
+MetaDataWithGPSC <- read.csv("MetaDataWithGPSC.csv")
+```
+
+Here we read in example data that comes with the package using `data()`:
+
 ```{r}
 data("MetaDataWithGPSC", package = "Stubentiger", envir = environment())
 head(MetaDataWithGPSC)
 ```
 
-# column names must be 
+The column names of your own `data.frame` must match this example, i.e.:
+
 ```{r}
 colnames(MetaDataWithGPSC)
 ```
 
-# pangenome matrix must have Lane_ids as column names
-# when using Panaroo, this should be the default output format
-# will likely want to read in as follows
-# gene_presence_absence_mtx <- read.csv("gene_presence_absence.csv", header=TRUE, check.names=FALSE)
-# below, we read in with data() as the example data is part of the package
+The pangenome matrix must have the Lane_ids as column names. When using Panaroo, this should be the default output format. You will likely want to read in as follows:
+
+```{r, eval=FALSE}
+gene_presence_absence_mtx <- read.csv("gene_presence_absence.csv", header=TRUE, check.names=FALSE)
+```
+
+Again, we read in example data here:
+
 ```{r}
 data("gene_presence_absence_mtx", package = "Stubentiger", envir = environment())
 ```
 
-# this is what it should look like
+And it should look something like this:
+
 ```{r}
 print(gene_presence_absence_mtx[1:3, 1:10])
 ```
 
-# Create input for model
+## Create input for model
 
-# Create dictionaries
+### Create dictionaries
+
 ```{r}
 SeqYear_dict <- MetaDataWithGPSC$Year
 names(SeqYear_dict) <- MetaDataWithGPSC$Lane_id
@@ -78,16 +88,16 @@ GPSC_dict <- MetaDataWithGPSC$GPSC
 names(GPSC_dict) <- MetaDataWithGPSC$Lane_id
 ```
 
+### Create immigration matrix and start population
 
-# Create immigration matrix and start population
 ```{r}
 # Create PP clusters, split by serotype
 # calculate the frequency of the gene clusters and year and serotype
 # rows = GPSCs, columns = serotypes
 
-preVac_GPSC_sero_freq <- matrix(0,nrow = length(unique(MetaDataWithGPSC$GPSC)), ncol = length(unique(MetaDataWithGPSC$Serotype)))
-for (i in seq_along(unique(MetaDataWithGPSC$GPSC))){
-  for (k in seq_along(unique(MetaDataWithGPSC$Serotype))){
+preVac_GPSC_sero_freq <- matrix(0, nrow = length(unique(MetaDataWithGPSC$GPSC)), ncol = length(unique(MetaDataWithGPSC$Serotype)))
+for (i in seq_along(unique(MetaDataWithGPSC$GPSC))) {
+  for (k in seq_along(unique(MetaDataWithGPSC$Serotype))) {
   preVac_GPSC_sero_freq[i,k] <- nrow(MetaDataWithGPSC[which(MetaDataWithGPSC$GPSC==unique(MetaDataWithGPSC$GPSC)[i] &  MetaDataWithGPSC$Serotype==unique(MetaDataWithGPSC$Serotype)[k] & MetaDataWithGPSC$Year == preVacTime),])
   }
 }
@@ -120,7 +130,8 @@ for (i in 1:nrow(PPsero_startpop)) {
 # saveRDS(PPsero_startpop, "PPsero_startpop.rds") # start population
 ```
 
-# Create vector that saves which serotypes are affected by the vaccine
+### Create vector that saves which serotypes are affected by the vaccine
+
 ```{r}
 # serotype VT vector
 SeroVT <- rep(0, length(unique(MetaDataWithGPSC$Serotype)))
@@ -132,11 +143,13 @@ for (i in 1:nrow(MetaDataWithGPSC)) {
 # saveRDS(SeroVT, "SeroVT.rds") # serotype vector
 ```
 
-# Start computing genotype matrix
-# We are now going to use the pangenome matrix that we read in earlier (gene_presence_absence_mtx)
+## Start computing genotype matrix
+
+### Convert the pangenome matrix that we read in earlier (`gene_presence_absence_mtx`) to boolean form
+
 ```{r}
 # convert presence absence into boolean (0-1-based) matrix
-convert_to_bool <- function(x){
+convert_to_bool <- function(x) {
   if (x=="") 0 else 1
 }
 gene_presence_absence_mtx_bool <- gene_presence_absence_mtx[,c(-2,-3)] # remove second and third column (might be empty or contain functional annotation)
@@ -144,7 +157,8 @@ gene_presence_absence_mtx_bool[,-1] <- apply(gene_presence_absence_mtx_bool[,-1]
 # filter for insertion sequence elements here if wanted (e.g. remove transposases, ...)
 ```
 
-# Create time point specific presence absence matrices for first and last time point
+### Create time point-specific presence absence matrices for the first and last time points
+
 ```{r}
 # presence absence matrices for first time point (pre-vaccine)
 gene_presence_absence_mtx_bool_pre <- data.frame(matrix(0, nrow = nrow(gene_presence_absence_mtx_bool), ncol = length(which(MetaDataWithGPSC$Year==preVacTime))+1))
@@ -159,9 +173,10 @@ gene_presence_absence_mtx_bool_post[,1] <- gene_presence_absence_mtx_bool[,1]
 gene_presence_absence_mtx_bool_post[,-1] <- gene_presence_absence_mtx_bool[,c(FALSE,SeqYear_dict[colnames(gene_presence_absence_mtx_bool[-1])]==postVacTime)]
 ```
 
-# Find intermediate genes (frequency of 5-95%) in first sampling time point
+## Find intermediate genes (frequency of 5-95%) in first sampling time point
+
 ```{r}
-sum_as_int <- function(x){
+sum_as_int <- function(x) {
   sum(as.integer(x))
 }
 
@@ -172,7 +187,8 @@ gene_freq_pre <- gene_freq_pre / (ncol(gene_presence_absence_mtx_bool_pre)-1)
 gene_filter <- as.integer(gene_freq_pre<=0.95 & gene_freq_pre>=0.05) # 1 for the genes that are at intermediate frequency, 0 for the others (rare and core)
 ```
 
-# Filter gene presence absence matrix for intermediate genes only
+## Filter gene presence absence matrix for intermediate genes only
+
 ```{r}
 # intermediate gene presence absence matrices filtered by genes that are present at 5-95% frequency in pre-vaccine sample
 # for first time point
@@ -188,14 +204,15 @@ intermed_gene_presence_absence_mtx_bool <- data.frame(matrix(0, nrow = sum(gene_
 intermed_gene_presence_absence_mtx_bool <- gene_presence_absence_mtx_bool[c(which(gene_filter==1)),]
 ```
 
-# Compute consensus for GPSCs (columns in gene presence absence matrix will now not be isolates but GPSCs)
+## Compute consensus for GPSCs (columns in gene presence absence matrix will now not be isolates but GPSCs)
+
 ```{r}
 # initialise matrices for all time points
 consensus_intermed_gene_presence_absence_mtx_bool <- data.frame(matrix(0, nrow = sum(gene_filter), ncol = length(unique(MetaDataWithGPSC$GPSC))+1))
 colnames(consensus_intermed_gene_presence_absence_mtx_bool) <- c("Gene",paste("SeqCl_",unique(MetaDataWithGPSC$GPSC),sep = ""))
 consensus_intermed_gene_presence_absence_mtx_bool[,1] <- intermed_gene_presence_absence_mtx_bool[,1]
 
-cons_genomes <- function(x){
+cons_genomes <- function(x) {
   as.double(ceiling(median(as.integer(x))))
 }
 
@@ -209,7 +226,8 @@ consensus_intermed_gene_presence_absence_mtx_bool <- apply(as.matrix(consensus_i
 # saveRDS(consensus_intermed_gene_presence_absence_mtx_bool, file = "Genotypes_matrix.rds") # Genotypes matrix for model input
 ```
 
-# Calculate delta statistic for ordering genes according to frequency changes (the less they change the more likely they are to be under NFDS)
+## Calculate delta statistic for ordering genes according to frequency changes (the less they change the more likely they are to be under NFDS)
+
 ```{r}
 # calculate gene counts first, separate for pre and post vaccine (first and last time point in data set)
 gene_sum_pre <- apply(intermed_gene_presence_absence_mtx_bool_pre[,-1], 1, sum_as_int)
@@ -227,7 +245,8 @@ gene_delta_ranking <- rank(gene_delta_data)
 # saveRDS(gene_delta_ranking, file = "gene_delta_ranking.rds") # ranking describes the over from very little frequency changes to large frequency changes of intermediate-frequency genes
 ```
 
-### simulate model with you data input
+## Simulate the model with your input data
+
 ```{r}
 vacc_time <- 4 # time of vaccination, in years after start of dataset
 no_GPSC <- nrow(PPsero_startpop) # number of GPSCs
@@ -264,18 +283,20 @@ model_params <- list(
 simulated_data <- simulate_model(model_parameters = model_params, simulation_steps = time_steps)
 ```
 
-# the simulated data is a dataframe
-# columns represent time steps of the model simulation
-# rows represent GPSCs 
+The simulated data is a `data.frame`: the columns represent time steps of the model simulation, and the rows represent GPSCs.
+
 ```{r}
 head(simulated_data)
 ```
 
+For fitting the model, you will also need to calculate frequencies of GPSCs that you want to fit to - see below.
 
-# For fitting the model, you will also need to calculate frequencies of GPSCs that you want to fit to
-# Calculate GPSC counts for each data time point (this is for fitting the model to data)
+### Calculate GPSC counts for each data time point
+
+As mentioned above, this is needed for fitting the model to data.
+
 ```{r}
-#calculate the frequency of the gene clusters and year
+# calculate the frequency of the gene clusters and year
 GPSC_count_list <- vector(mode = "list", length = length(unique(SeqYear_dict)))
 GPSC_count_df <- as.data.frame(matrix(NA, nrow = length(unique(MetaDataWithGPSC$GPSC)), ncol = length(unique(SeqYear_dict))))
 
@@ -285,11 +306,12 @@ for (i in seq_along(unique(SeqYear_dict))) {
   }
   GPSC_count_df[,i] <- GPSC_count_list[[i]]
 }
-
-
 ```
 
-# example for fitting model to data (this will take longer)
+## Example of fitting the model to data
+
+Note: fitting the model to data will take longer to run than just simulating the model.
+
 ```{r}
 vacc_time <- 4 # time of vaccination, in years after start of dataset
 no_GPSC <- nrow(PPsero_startpop) # number of GPSCs
