@@ -338,3 +338,6 @@ example_params <- list(dt = dt_test,
 Stubentiger::fit_model_to_data(data = GPSC_count_df, fixed_parameters = example_params, steps_mcmc1 = 10, steps_mcmc2 = 20)
 ```
 
+## References
+
+<div id="refs"></div>
