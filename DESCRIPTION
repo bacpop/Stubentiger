@@ -7,6 +7,11 @@ Authors@R: c(
       "Leonie", "Lorenz",
       email = "llorenz@ebi.ac.uk",
       role = c("aut", "cre")
+    ),
+    person(
+      "Matthew", "Russell",
+      email = "matthewjohnrussell@gmail.com",
+      role = c("aut")
     )
   )
 Description: Stubentiger (STUdying Balancing Evolution (Nfds) To Investigate GEnome Replacement)
