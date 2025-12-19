@@ -4,3 +4,6 @@
 *.o
 *.so
 *.dll
+inst/doc
+/doc/
+/Meta/

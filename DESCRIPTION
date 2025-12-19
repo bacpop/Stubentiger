@@ -23,3 +23,7 @@ Imports:
   odin.dust (>= 0.3.13),
   mcstate (>= 0.9.22)
 RoxygenNote: 7.3.3
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
