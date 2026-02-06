@@ -262,14 +262,10 @@ simulate_example <- function(sim_parameters = list("v" = 0.081, "sigma_f" = log(
   # Set parameters for model
   vacc_time <- 4 # time of vaccination, in years after start of dataset
   data("PPsero_startpop", package = "Stubentiger", envir = environment()) # start population for model (GPSC x serotypes)
-  #print(head(PPsero_startpop))
   no_GPSC <- nrow(PPsero_startpop) # number of GPSCs
-  #freq_sero
   no_sero <- ncol(PPsero_startpop) # number of serotypes
   data("Genotypes_matrix", package = "Stubentiger", envir = environment())
-  #Genotypes_matrix <- sapply(Genotypes_matrix,as.double)
   data("gene_delta_ranking", package = "Stubentiger", envir = environment()) # delta statistic (computed as in Corander et al.)
-  #print(head(gene_delta_ranking))
   # calculates the changes in gene frequencies of the first time point (which are assumed to be at equilibrium) to the last time point
   # Genes that change the least in frequency have a low delta statistic value, genes that change more have a higher value.
   # then apply rank() function to determine order of genes
@@ -297,14 +293,10 @@ simulate_example_serotypes <- function(sim_parameters = list("v" = 0.081, "sigma
   # Set parameters for model
   vacc_time <- 4 # time of vaccination, in years after start of dataset
   data("PPsero_startpop", package = "Stubentiger", envir = environment()) # start population for model (GPSC x serotypes)
-  #print(head(PPsero_startpop))
   no_GPSC <- nrow(PPsero_startpop) # number of GPSCs
-  #freq_sero
   no_sero <- ncol(PPsero_startpop) # number of serotypes
   data("Genotypes_matrix", package = "Stubentiger", envir = environment())
-  #Genotypes_matrix <- sapply(Genotypes_matrix,as.double)
   data("gene_delta_ranking", package = "Stubentiger", envir = environment()) # delta statistic (computed as in Corander et al.)
-  #print(head(gene_delta_ranking))
   # calculates the changes in gene frequencies of the first time point (which are assumed to be at equilibrium) to the last time point
   # Genes that change the least in frequency have a low delta statistic value, genes that change more have a higher value.
   # then apply rank() function to determine order of genes
@@ -339,7 +331,6 @@ fit_example_to_sim_data <- function(sim_parameters = list("v" = 0.081, "sigma_f"
   data("PPsero_startpop", package = "Stubentiger", envir = environment()) # start population for model (GPSC x serotypes)
   PPsero_startpop <- data.frame(PPsero_startpop)
   no_GPSC <- nrow(PPsero_startpop) # number of GPSCs
-  #freq_sero
   no_sero <- ncol(PPsero_startpop) # number of serotypes
   data("Genotypes_matrix", package = "Stubentiger", envir = environment())
   Genotypes_matrix <- as.data.frame(Genotypes_matrix)
