@@ -23,7 +23,8 @@ devtools::install_github("bacpop/Stubentiger")
 ## Usage
 ```R
 library(Stubentiger)
-simulate_example() # simulate model with example inputs and default parameters
+simulate_example() # simulate model with example inputs and default parameters and returns GPSC frequencies
+simulate_example_serotypes() # simulate model with example inputs and default parameters and returns serotype frequencies
 fit_example_to_sim_data() # simulates data and fits model to simulated data, using example inputs and default parameters
 ```
 
@@ -31,7 +32,11 @@ To fit to your own data, first follow the steps described in the ProcessDataForM
 ```R
 simulate_model(model_parameters, simulation_steps)
 ```
-and for fitting/inference run
+for simulated GPSC frequencies. And 
+```R
+simulate_model_serotypes(model_parameters, simulation_steps)
+```
+for simulated serotype frequencies. And for fitting/inference run
 ```R
 fit_model_to_data(data, fixed_parameters, steps_mcmc1 = 10, steps_mcmc2 = 50)
 ```

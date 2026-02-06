@@ -73,18 +73,39 @@ simulate_model <- function(model_parameters, simulation_steps){
                                     seed = 1L, deterministic = TRUE) # can also run this in stochastic mode with deterministic = FALSE
 
   simulated_data_long <- list()
-  simulated_sum_data_long <- list()
-  list_of_particle_list <- list()
   for (i in 0:simulation_steps) {
     simMean_all <- rowMeans(WFmodel_ppxSero$run(i)[-(1:(model_parameters$GPSC_no+1)),])
     simMean_matrix <- matrix(simMean_all, ncol = model_parameters$sero_no, nrow = model_parameters$GPSC_no, byrow = FALSE)
     simulated_data_long[[i+1]] <- simMean_matrix
-    simSum_all <- rowSums(WFmodel_ppxSero$run(i)[-(1:(model_parameters$GPSC_no+1)),])
-    simSum_matrix <- matrix(simSum_all, ncol = model_parameters$sero_no, nrow = model_parameters$GPSC_no, byrow = FALSE)
-    simulated_sum_data_long[[i+1]] <- simSum_matrix
-    list_of_particle_list[[i+1]] <- WFmodel_ppxSero$run(i)[(2:(model_parameters$GPSC_no+1)),]
   }
   simulated_data_over_time_clust <- sapply(simulated_data_long, rowSums)
+  simulated_data_over_time_clust_df <- as.data.frame(simulated_data_over_time_clust)
+  simulated_data_over_time_clust_df
+}
+
+#' Title
+#'
+#' @param model_parameters list of model parameters
+#' @param simulation_steps number of steps to run the simulation for (in model time) (if dt = 1/12, this should be 12 * years to run simulation for)
+#'
+#' @return simulated data in serotype frequencies over time as data frame
+#' @export
+#'
+simulate_model_serotypes <- function(model_parameters, simulation_steps){
+  WF_PPxSero <- model # imports precompiled model
+
+  WFmodel_ppxSero <- WF_PPxSero$new(pars = model_parameters,
+                                    time = 0,
+                                    n_particles = 10L,
+                                    n_threads = 4L,
+                                    seed = 1L, deterministic = TRUE) # can also run this in stochastic mode with deterministic = FALSE
+  simulated_data_long <- list()
+  for (i in 0:simulation_steps) {
+    simMean_all <- rowMeans(WFmodel_ppxSero$run(i)[-(1:(model_parameters$GPSC_no+1)),])
+    simMean_matrix <- matrix(simMean_all, ncol = model_parameters$sero_no, nrow = model_parameters$GPSC_no, byrow = FALSE)
+    simulated_data_long[[i+1]] <- simMean_matrix
+  }
+  simulated_data_over_time_clust <- sapply(simulated_data_long, colSums)
   simulated_data_over_time_clust_df <- as.data.frame(simulated_data_over_time_clust)
   simulated_data_over_time_clust_df
 }
@@ -234,21 +255,17 @@ fit_model_to_data <- function(data, fixed_parameters, steps_mcmc1 = 10, steps_mc
 #' @param sim_parameters list of parameter values for v, sigma_f, prop_f, m
 #' @param time_steps number of time steps (in months) to run the model for
 #'
-#' @return fitted mcmc object
+#' @return simulated data
 #' @export
 #'
 simulate_example <- function(sim_parameters = list("v" = 0.081, "sigma_f" = log(0.035), "prop_f" = 0.30, "m" = log(0.013)), time_steps = 36){
   # Set parameters for model
   vacc_time <- 4 # time of vaccination, in years after start of dataset
   data("PPsero_startpop", package = "Stubentiger", envir = environment()) # start population for model (GPSC x serotypes)
-  #print(head(PPsero_startpop))
   no_GPSC <- nrow(PPsero_startpop) # number of GPSCs
-  #freq_sero
   no_sero <- ncol(PPsero_startpop) # number of serotypes
   data("Genotypes_matrix", package = "Stubentiger", envir = environment())
-  #Genotypes_matrix <- sapply(Genotypes_matrix,as.double)
   data("gene_delta_ranking", package = "Stubentiger", envir = environment()) # delta statistic (computed as in Corander et al.)
-  #print(head(gene_delta_ranking))
   # calculates the changes in gene frequencies of the first time point (which are assumed to be at equilibrium) to the last time point
   # Genes that change the least in frequency have a low delta statistic value, genes that change more have a higher value.
   # then apply rank() function to determine order of genes
@@ -262,6 +279,37 @@ simulate_example <- function(sim_parameters = list("v" = 0.081, "sigma_f" = log(
   example_params <- list(dt = dt_test, GPSC_no = no_GPSC, sero_no = no_sero, gene_no = gene_no_test, Pop_start = PPsero_startpop, Pop_eq = rowSums(PPsero_startpop), capacity = sum(PPsero_startpop), Genotypes = Genotypes_matrix, delta = (gene_delta_ranking), Pop_mig_dist = PPsero_mig, vaccTypes = SeroVT, vacc_time = vacc_time, v = sim_parameters$v, sigma_f = sim_parameters$sigma_f, prop_f = sim_parameters$prop_f, m = sim_parameters$m)
 
   simulate_model(model_parameters = example_params, simulation_steps = time_steps)
+}
+
+#' Title
+#'
+#' @param sim_parameters list of parameter values for v, sigma_f, prop_f, m
+#' @param time_steps number of time steps (in months) to run the model for
+#'
+#' @return simulated serotype data
+#' @export
+#'
+simulate_example_serotypes <- function(sim_parameters = list("v" = 0.081, "sigma_f" = log(0.035), "prop_f" = 0.30, "m" = log(0.013)), time_steps = 36){
+  # Set parameters for model
+  vacc_time <- 4 # time of vaccination, in years after start of dataset
+  data("PPsero_startpop", package = "Stubentiger", envir = environment()) # start population for model (GPSC x serotypes)
+  no_GPSC <- nrow(PPsero_startpop) # number of GPSCs
+  no_sero <- ncol(PPsero_startpop) # number of serotypes
+  data("Genotypes_matrix", package = "Stubentiger", envir = environment())
+  data("gene_delta_ranking", package = "Stubentiger", envir = environment()) # delta statistic (computed as in Corander et al.)
+  # calculates the changes in gene frequencies of the first time point (which are assumed to be at equilibrium) to the last time point
+  # Genes that change the least in frequency have a low delta statistic value, genes that change more have a higher value.
+  # then apply rank() function to determine order of genes
+  # (NFDS model will determine a cut-off for genes to be under NFDS or not based on this order)
+  gene_no_test <- length(gene_delta_ranking) # number of intermediate-frequency genes
+  data("PPsero_mig", package = "Stubentiger", envir = environment()) # immigration matrix (rows are GPSCs, columns are serotypes)
+  # compute immigration matrix by assigning all GPSC-serotype combinations that appear at least once in the data set equal probabilities of immigration (i.e. one over the number of GPSC-serotype combinations)
+  data("SeroVT", package = "Stubentiger", envir = environment()) # information on which types are affected by vaccine (1 = serotype affected by vaccine, 0 = serotypes not affected)
+  dt_test <- 1/12 # determines how many generations there are between two data points (here: 12 generations per year)
+
+  example_params <- list(dt = dt_test, GPSC_no = no_GPSC, sero_no = no_sero, gene_no = gene_no_test, Pop_start = PPsero_startpop, Pop_eq = rowSums(PPsero_startpop), capacity = sum(PPsero_startpop), Genotypes = Genotypes_matrix, delta = (gene_delta_ranking), Pop_mig_dist = PPsero_mig, vaccTypes = SeroVT, vacc_time = vacc_time, v = sim_parameters$v, sigma_f = sim_parameters$sigma_f, prop_f = sim_parameters$prop_f, m = sim_parameters$m)
+
+  simulate_model_serotypes(model_parameters = example_params, simulation_steps = time_steps)
 }
 
 #' Title
@@ -283,7 +331,6 @@ fit_example_to_sim_data <- function(sim_parameters = list("v" = 0.081, "sigma_f"
   data("PPsero_startpop", package = "Stubentiger", envir = environment()) # start population for model (GPSC x serotypes)
   PPsero_startpop <- data.frame(PPsero_startpop)
   no_GPSC <- nrow(PPsero_startpop) # number of GPSCs
-  #freq_sero
   no_sero <- ncol(PPsero_startpop) # number of serotypes
   data("Genotypes_matrix", package = "Stubentiger", envir = environment())
   Genotypes_matrix <- as.data.frame(Genotypes_matrix)
