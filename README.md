@@ -18,6 +18,8 @@ Install `devtools`, and use it to install Stubentiger from its GitHub repository
 ```R
 install.packages("devtools")
 devtools::install_github("bacpop/Stubentiger")
+# if you want to have access to the vignettes, you may want to use
+devtools::install_github("bacpop/Stubentiger", build_vignettes = TRUE)
 ```
 
 ## Usage

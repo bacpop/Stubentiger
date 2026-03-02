@@ -289,6 +289,18 @@ The simulated data is a `data.frame`: the columns represent time steps of the mo
 head(simulated_data)
 ```
 
+# Alternatively, you can also simulate serotype frequencies with the model
+
+```{r}
+simulated_data_serotypes <- simulate_model_serotypes(model_parameters = model_params, simulation_steps = time_steps)
+```
+
+The simulated data is a `data.frame`: the columns represent time steps of the model simulation, and the rows represent serotypes.
+
+```{r}
+head(simulated_data_serotypes)
+```
+
 For fitting the model, you will also need to calculate frequencies of GPSCs that you want to fit to - see below.
 
 ### Calculate GPSC counts for each data time point
