@@ -7,10 +7,10 @@ This is an R package to simulate and fit a population genetic model with paramet
 
 ## Installation
 
-Install Stubentiger's dependencies, `odin.dust`, `dust`, and `mcstate`:
+Install Stubentiger's dependencies, `dust`, and `mcstate`:
 ```R
 install.packages(
-  "odin.dust", "dust", "mcstate",
+  "dust", "mcstate",
   repos = c("https://mrc-ide.r-universe.dev", "https://cloud.r-project.org"))
 ```
 
